@@ -8,6 +8,8 @@ class Grid
 {
 public:
     void render();
+    static bool renderV;
+    static bool renderF;
 
     Eigen::Vector2d position;
 
@@ -19,3 +21,4 @@ public:
     Eigen::Vector2d force;
     Eigen::Vector2d newPosition;
 };
+

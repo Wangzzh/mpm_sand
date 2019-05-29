@@ -31,9 +31,7 @@ public:
     void render();
     void step();
 
-private:
-    std::vector<double> calculateWeights(double distToLeft);
-    
+private:    
     void particleToGrid();
     void computeParticleDensity();
     void computeGridForce();

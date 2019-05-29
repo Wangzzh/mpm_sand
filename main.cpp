@@ -13,7 +13,7 @@ MPM* mpm;
 bool simulate = false;
 
 int n = 30;
-double dTime = 0.004;
+double dTime = 0.001;
 
 void display() {
     glClearColor(0, 0, 0, 0);
@@ -34,6 +34,21 @@ void keyboard(unsigned char key, int x, int y) {
     if (key == ' ') {
         simulate = !simulate;
     }
+    if (key == '1') {
+        Particle::renderV = !Particle::renderV;
+    }
+    if (key == '2') {
+        Particle::renderFE = !Particle::renderFE;
+    }
+    if (key == '3') {
+        Particle::renderF = !Particle::renderF;
+    }
+    if (key == '6') {
+        Grid::renderV = !Grid::renderV;
+    }
+    if (key == '7') {
+        Grid::renderF = !Grid::renderF;
+    }
 }
 
 void idle() {
@@ -47,6 +62,14 @@ void idle() {
 int main(int argc, char* argv[]) {
     MaterialParameters material = MaterialParameters(140000, 0.2, 10, 0.025, 0.0075);
     mpm = new MPM(n, dTime, material);
+
+    Particle::renderV = true;
+    Particle::renderFE = true;
+    Particle::renderF = false;
+
+    Grid::renderV = true;
+    Grid::renderF = true;
+    
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);

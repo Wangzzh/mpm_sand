@@ -17,34 +17,34 @@ MPM::MPM(int nGrid, double timeStep, MaterialParameters material) {
     this->timeStep = timeStep;
     this->material = material;
 
-    // Particle* p1 = new Particle();
-    // p1 -> mass = 1;
-    // p1 -> position << 0.47, 0.63;
-    // p1 -> velocity << 1.0, 0.0;
-    // particles.push_back(p1);
+    Particle* p1 = new Particle();
+    p1 -> mass = 1;
+    p1 -> position << 0.47, 0.63;
+    p1 -> velocity << 1.0, 0.0;
+    particles.push_back(p1);
     
-    // Particle* p2 = new Particle();
-    // p2 -> mass = 2;
-    // p2 -> position << 0.5, 0.52;
-    // p2 -> velocity << 0.5, 0.5;
-    // particles.push_back(p2);
+    Particle* p2 = new Particle();
+    p2 -> mass = 2;
+    p2 -> position << 0.5, 0.52;
+    p2 -> velocity << 0.5, 0.5;
+    particles.push_back(p2);
 
-    // Particle* p3 = new Particle();
-    // p3 -> mass = 1;
-    // p3 -> position << 0.81, 0.87;
-    // p3 -> velocity << -0.2, 0.5;
-    // particles.push_back(p3);
+    Particle* p3 = new Particle();
+    p3 -> mass = 1;
+    p3 -> position << 0.81, 0.87;
+    p3 -> velocity << -0.2, 0.5;
+    particles.push_back(p3);
 
-    int divs = 500;
-    for (int i = 0; i < divs; i++) {
-        Particle* p = new Particle();
-        p -> mass = 0.04;
-        double x = 0.5 + (rand() % 10000) / 100000.;
-        double y = 0.8 + (rand() % 10000) / 100000.;
-        p -> position << x, y;
-        p -> velocity << 0, 0;
-        particles.push_back(p);
-    }
+    int divs = 100;
+    // for (int i = 0; i < divs; i++) {
+    //     Particle* p = new Particle();
+    //     p -> mass = 0.04;
+    //     double x = 0.5 + (rand() % 10000) / 100000.;
+    //     double y = 0.8 + (rand() % 10000) / 100000.;
+    //     p -> position << x, y;
+    //     p -> velocity << 0, 0;
+    //     particles.push_back(p);
+    // }
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {
@@ -96,15 +96,6 @@ void MPM::render() {
     }
 }
 
-std::vector<double> MPM::calculateWeights(double x) {
-    std::vector<double> xWeight;
-    xWeight.push_back(-(1+x) * (1+x) * (1+x) / 6. + (1+x) * (1+x) - 2 * (1+x) + 4./3.);
-    xWeight.push_back(0.5 * x * x * x - x * x + 2./3.);
-    xWeight.push_back(0.5 * (1-x) * (1-x) * (1-x) - (1-x) * (1-x) + 2./3.);
-    xWeight.push_back(-(2-x) * (2-x) * (2-x) / 6. + (2-x) * (2-x) - 2 * (2-x) + 4./3.);
-    return xWeight;
-}
-
 void MPM::particleToGrid() {
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
@@ -119,15 +110,20 @@ void MPM::particleToGrid() {
         particle->yDiff = (particle->position[1] * nGrid) - particle->yLeft - 0.5;
 
         particle->calculateWeights();
+        Eigen::Matrix2d Dinv = Eigen::Matrix2d::Identity() * 3 * nGrid * nGrid;
         
         for (int dx = -1; dx <= 2; dx++) {
             for (int dy = -1; dy <= 2; dy++) {
                 int xGrid = particle->xLeft + dx;
                 int yGrid = particle->yLeft + dy;
+                Eigen::Vector2d displacement;
+                displacement << (particle->xDiff - dx) / nGrid, (particle->yDiff - dy) / nGrid;
                 if (xGrid >= 0 && xGrid < nGrid && yGrid >= 0 && yGrid < nGrid) {
                     grids[xGrid][yGrid] -> mass += particle->xWeight[dx+1] * particle->yWeight[dy+1] * particle->mass;
-                    grids[xGrid][yGrid] -> linearMomentum += particle->xWeight[dx+1] * particle->yWeight[dy+1] * particle->mass * particle-> velocity;
+                    grids[xGrid][yGrid] -> linearMomentum += particle->xWeight[dx+1] * particle->yWeight[dy+1] * 
+                        particle->mass * (particle-> velocity + particle->B * Dinv * displacement);
                 }
+                // std::cout << "displacement:" << displacement << std::endl;
             }
         }
     }
@@ -147,8 +143,8 @@ void MPM::computeParticleDensity() {
         }
         particle->volume = particle->mass / particle->density;
 
-        // std::cout << "r " << particle->density << std::endl;
-        // std::cout << "v " << particle->volume << std::endl;
+        std::cout << "r " << particle->density << std::endl;
+        std::cout << "v " << particle->volume << std::endl;
     }
 }
 
@@ -159,31 +155,10 @@ void MPM::computeGridForce() {
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
             grid -> force = gravity * grid->mass;
-            grid -> newPosition = grid -> position + timeStep * grid -> linearMomentum / grid -> mass;
         }
     }
 
     for (auto& particle : particles) {   
-        // std::cout << "--------------------------------------------" << std::endl;
-
-        // Calculate FEHat
-        Eigen::Matrix2d FEHat = particle->FE;
-        for (int dx = -1; dx <= 2; dx++) {
-            for (int dy = -1; dy <= 2; dy++) {
-                int xGrid = particle->xLeft + dx;
-                int yGrid = particle->yLeft + dy;
-                if (xGrid >= 0 && xGrid < nGrid && yGrid >= 0 && yGrid < nGrid) {
-                    Eigen::Vector2d weightGradient;
-                    weightGradient << particle->xWeightGradient[dx+1] * particle->yWeight[dy+1], 
-                                      particle->yWeightGradient[dy+1] * particle->xWeight[dx+1];
-                    // FEHat += (grids[xGrid][yGrid] -> newPosition - grids[xGrid][yGrid] -> position)
-                    //     * weightGradient.transpose() * particle->FE;
-                    FEHat += weightGradient * (grids[xGrid][yGrid] -> newPosition - grids[xGrid][yGrid] -> position).transpose()
-                           * particle->FE;
-                }
-            }
-        }
-
         double JE = particle->FE.determinant();
         double JP = particle->FP.determinant();
         double lambda = material.lambda * exp(material.xsi * (1 - JP));
@@ -193,22 +168,18 @@ void MPM::computeGridForce() {
         // std::cout << "lambda: " << lambda << std::endl;
         // std::cout << "mu: " << mu << std::endl;
 
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd(FEHat, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd(particle->FE, Eigen::ComputeThinU | Eigen::ComputeThinV);
         Eigen::Matrix2d U = svd.matrixU();
         Eigen::Matrix2d V = svd.matrixV();
         Eigen::Matrix2d RE = U * V.transpose();
-        Eigen::Matrix2d S = U.inverse() * FEHat * V.transpose().inverse();
+        Eigen::Matrix2d Sig = U.inverse() * particle->FE * V.transpose().inverse();
+        Eigen::Matrix2d S = V * Sig * V.transpose();
         // std::cout << "U" << std::endl << U << std::endl;
         // std::cout << "V" << std::endl << V << std::endl;
         // std::cout << "S" << std::endl << S << std::endl;
         // std::cout << "R" << std::endl << RE << std::endl;
 
-        Eigen::Matrix2d dPdF = 2 * mu * (FEHat - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
-        Eigen::Matrix2d sigma;
-        sigma = 1. / JP * dPdF * particle->FE.transpose();
-        // std::cout << "dpdf" << std::endl << dPdF << std::endl;
-        // std::cout << "sigma" << std::endl << sigma << std::endl;
-
+        Eigen::Matrix2d PF = 2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
 
         for (int dx = -1; dx <= 2; dx++) {
             for (int dy = -1; dy <= 2; dy++) {
@@ -216,9 +187,9 @@ void MPM::computeGridForce() {
                 int yGrid = particle->yLeft + dy;
                 if (xGrid >= 0 && xGrid < nGrid && yGrid >= 0 && yGrid < nGrid) {
                     Eigen::Vector2d weightGradient;
-                    weightGradient << particle->xWeightGradient[dx+1] * particle->yWeight[dy+1], 
-                                      particle->yWeightGradient[dy+1] * particle->xWeight[dx+1];
-                    grids[xGrid][yGrid] -> force -= particle->volume * JP * sigma * weightGradient;
+                    weightGradient << particle->xWeightGradient[dx+1] * particle->yWeight[dy+1] * nGrid, 
+                                      particle->yWeightGradient[dy+1] * particle->xWeight[dx+1] * nGrid;
+                    grids[xGrid][yGrid] -> force -= particle->volume * PF * particle->FE.transpose() * weightGradient;
                 }
             }
         }
@@ -244,8 +215,8 @@ void MPM::updateDeformation() {
                 int yGrid = particle->yLeft + dy;
                 if (xGrid >= 0 && xGrid < nGrid && yGrid >= 0 && yGrid < nGrid) {
                     Eigen::Vector2d weightGradient;
-                    weightGradient << particle->xWeightGradient[dx+1] * particle->yWeight[dy+1], 
-                                      particle->yWeightGradient[dy+1] * particle->xWeight[dx+1];
+                    weightGradient << particle->xWeightGradient[dx+1] * particle->yWeight[dy+1] * nGrid, 
+                                      particle->yWeightGradient[dy+1] * particle->xWeight[dx+1] * nGrid;
                     velocityGradient += grids[xGrid][yGrid]->newLinearMomentum / grids[xGrid][yGrid]->mass * weightGradient.transpose();
                 }
             }
@@ -253,24 +224,25 @@ void MPM::updateDeformation() {
 
 
         // std::cout << "vgrad: " << std::endl << velocityGradient << std::endl;
-        Eigen::Matrix2d Fnew = (Eigen::Matrix2d::Identity() + timeStep * velocityGradient) * particle->FE * particle->FP;
+        Eigen::Matrix2d Fnew = (Eigen::Matrix2d::Identity() + timeStep * velocityGradient) * particle->FE;
+        particle->FE = Fnew;
         
         // std::cout << "Fnew: " << std::endl << Fnew << std::endl;
 
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd(Fnew, Eigen::ComputeThinU | Eigen::ComputeThinV);
-        Eigen::Matrix2d U = svd.matrixU();
-        Eigen::Matrix2d V = svd.matrixV();
-        Eigen::Matrix2d S = U.inverse() * Fnew * V.transpose().inverse();
+        // Eigen::JacobiSVD<Eigen::MatrixXd> svd(Fnew, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        // Eigen::Matrix2d U = svd.matrixU();
+        // Eigen::Matrix2d V = svd.matrixV();
+        // Eigen::Matrix2d S = U.inverse() * Fnew * V.transpose().inverse();
         
         
         // std::cout << "S: " << std::endl << S << std::endl;
-        for (int i = 0; i < 2; i++) {
-            if (S(i, i) > 1 + material.thetaS) S(i, i) = 1 + material.thetaS;
-            if (S(i, i) < 1 - material.thetaC) S(i, i) = 1 - material.thetaC;
-        }
+        // for (int i = 0; i < 2; i++) {
+        //     if (S(i, i) > 1 + material.thetaS) S(i, i) = 1 + material.thetaS;
+        //     if (S(i, i) < 1 - material.thetaC) S(i, i) = 1 - material.thetaC;
+        // }
 
-        particle->FE = U * S * V.transpose();
-        particle->FP = V * S.inverse() * U.transpose() * Fnew;
+        // particle->FE = U * S * V.transpose();
+        // particle->FP = (V * S.inverse() * U.transpose() * Fnew) * particle->FP;
         
         // std::cout << "FE: " << std::endl << particle->FE << std::endl;
         // std::cout << "FP: " << std::endl << particle->FP << std::endl;
@@ -283,22 +255,27 @@ void MPM::updateParticleVelocity() {
     double alpha = 0.;
     for (auto& particle : particles) {   
         Eigen::Vector2d vPIC = Eigen::Vector2d::Zero();
-        Eigen::Vector2d vFLIP = particle->velocity;
+        // Eigen::Vector2d vFLIP = particle->velocity;
+        particle->B = Eigen::Matrix2d::Zero();
 
         for (int dx = -1; dx <= 2; dx++) {
             for (int dy = -1; dy <= 2; dy++) {
                 int xGrid = particle->xLeft + dx;
                 int yGrid = particle->yLeft + dy;
+                Eigen::Vector2d displacement;
+                displacement << (particle->xDiff - dx) / nGrid, (particle->yDiff - dy) / nGrid;
                 if (xGrid >= 0 && xGrid < nGrid && yGrid >= 0 && yGrid < nGrid) {
                     Eigen::Vector2d gridV = grids[xGrid][yGrid]->linearMomentum / grids[xGrid][yGrid] -> mass;
                     Eigen::Vector2d gridNewV = grids[xGrid][yGrid]->newLinearMomentum / grids[xGrid][yGrid] -> mass;
                     vPIC += particle->xWeight[dx+1] * particle->yWeight[dy+1] * gridNewV;
-                    vFLIP += particle->xWeight[dx+1] * particle->yWeight[dy+1] * (gridNewV - gridV);
+                    // vFLIP += particle->xWeight[dx+1] * particle->yWeight[dy+1] * (gridNewV - gridV);
+                    particle->B += particle->xWeight[dx+1] * particle->yWeight[dy+1] * gridNewV * displacement.transpose(); 
                 }
             }
         }
 
-        particle->velocity = (1-alpha) * vPIC + alpha * vFLIP;
+        // particle->velocity = (1-alpha) * vPIC + alpha * vFLIP;
+        particle->velocity = vPIC;
     }
 }
 

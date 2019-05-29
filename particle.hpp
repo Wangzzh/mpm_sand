@@ -11,6 +11,9 @@ class Particle
 {
 public:
     void render();
+    static bool renderFE;
+    static bool renderV;
+    static bool renderF;
 
     double mass;
     double density;
@@ -21,6 +24,7 @@ public:
     
     Eigen::Matrix2d FE = Eigen::Matrix2d::Identity();
     Eigen::Matrix2d FP = Eigen::Matrix2d::Identity();
+    Eigen::Matrix2d B = Eigen::Matrix2d::Zero();
 
     // intermediate results
     int xLeft, yLeft;
@@ -30,3 +34,4 @@ public:
 
     void calculateWeights();
 };
+

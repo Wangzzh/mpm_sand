@@ -1,19 +1,54 @@
 #include "particle.hpp"
 
+bool Particle::renderV = true;
+bool Particle::renderF = true;
+bool Particle::renderFE = true;
+
 void Particle::render() {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
     glTranslatef(position[0], position[1], 0.);
-    glutSolidSphere(0.002, 10, 10);
+    glutSolidSphere(0.002, 4, 4);
     glPopMatrix();
 
-    // double velocityFactor = 0.1;
-    // glBegin(GL_LINES);
-    // glVertex3f(position[0], position[1], 0.0);
-    // glVertex3f(position[0] + velocity[0] * velocityFactor, 
-    //     position[1] + velocity[1] * velocityFactor, 0.);
-    // glEnd();
+    if (Particle::renderV) {
+        double velocityFactor = 0.1;
+        glBegin(GL_LINES);
+        glVertex3f(position[0], position[1], 0.0);
+        glVertex3f(position[0] + velocity[0] * velocityFactor, 
+            position[1] + velocity[1] * velocityFactor, 0.);
+        glEnd();
+    }
+    
+    if (Particle::renderFE) {
+        double velocityFactor = 0.05;
+        glBegin(GL_LINES);
+        glColor3f(0.5, 1, 1);
+        glVertex3f(position[0], position[1], 0.0);
+        glVertex3f(position[0] + FE(0,0) * velocityFactor, 
+            position[1] + FE(1,0) * velocityFactor, 0.);
+        glColor3f(1, 0.5, 1);
+        glVertex3f(position[0], position[1], 0.0);
+        glVertex3f(position[0] + FE(1,0) * velocityFactor, 
+            position[1] + FE(1,1) * velocityFactor, 0.);
+        glEnd();
+    }
+    
+    if (Particle::renderF) {
+        double velocityFactor = 0.05;
+        Eigen::Matrix2d F = FE * FP;
+        glBegin(GL_LINES);
+        glColor3f(0.8, 1, 1);
+        glVertex3f(position[0], position[1], 0.0);
+        glVertex3f(position[0] + F(0,0) * velocityFactor, 
+            position[1] + F(1,0) * velocityFactor, 0.);
+        glColor3f(1, 0.8, 1);
+        glVertex3f(position[0], position[1], 0.0);
+        glVertex3f(position[0] + F(1,0) * velocityFactor, 
+            position[1] + F(1,1) * velocityFactor, 0.);
+        glEnd();
+    }
 }
 
 void Particle::calculateWeights() {
@@ -41,4 +76,5 @@ void Particle::calculateWeights() {
     yWeightGradient.push_back(1.5 * x * x - 2 * x + 2./3.);
     yWeightGradient.push_back(-1.5 * (1-x) * (1-x) + 2 * (1-x) + 2./3.);
     yWeightGradient.push_back((2-x) * (2-x) / 3. - 2 * (2-x) + 2);
+
 }
