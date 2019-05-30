@@ -1,7 +1,7 @@
 #include "grid.hpp"
 
-bool Grid::renderV = true;
-bool Grid::renderF = true;
+bool Grid::renderV = false;
+bool Grid::renderF = false;
 
 void Grid::render() {
     glMatrixMode(GL_MODELVIEW);

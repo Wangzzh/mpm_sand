@@ -14,10 +14,11 @@ public:
     static bool renderFE;
     static bool renderV;
     static bool renderF;
+    static bool renderB;
 
     double mass;
-    double density;
-    double volume;
+    // double density;
+    double volume = 1.0;
 
     Eigen::Vector2d position;
     Eigen::Vector2d velocity;

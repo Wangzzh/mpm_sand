@@ -1,8 +1,9 @@
 #include "particle.hpp"
 
-bool Particle::renderV = true;
-bool Particle::renderF = true;
-bool Particle::renderFE = true;
+bool Particle::renderV = false;
+bool Particle::renderF = false;
+bool Particle::renderFE = false;
+bool Particle::renderB = false;
 
 void Particle::render() {
     glMatrixMode(GL_MODELVIEW);
@@ -13,7 +14,7 @@ void Particle::render() {
     glPopMatrix();
 
     if (Particle::renderV) {
-        double velocityFactor = 0.1;
+        double velocityFactor = 0.02;
         glBegin(GL_LINES);
         glVertex3f(position[0], position[1], 0.0);
         glVertex3f(position[0] + velocity[0] * velocityFactor, 
@@ -35,6 +36,20 @@ void Particle::render() {
         glEnd();
     }
     
+    if (Particle::renderB) {
+        double velocityFactor = 0.05;
+        glBegin(GL_LINES);
+        glColor3f(0.5, 0, 0.5);
+        glVertex3f(position[0], position[1], 0.0);
+        glVertex3f(position[0] + B(0,0) * velocityFactor, 
+            position[1] + B(1,0) * velocityFactor, 0.);
+        glColor3f(0., 0.5, 0.5);
+        glVertex3f(position[0], position[1], 0.0);
+        glVertex3f(position[0] + B(1,0) * velocityFactor, 
+            position[1] + B(1,1) * velocityFactor, 0.);
+        glEnd();
+    }
+
     if (Particle::renderF) {
         double velocityFactor = 0.05;
         Eigen::Matrix2d F = FE * FP;
@@ -62,9 +77,9 @@ void Particle::calculateWeights() {
     xWeight.push_back(-(2-x) * (2-x) * (2-x) / 6. + (2-x) * (2-x) - 2 * (2-x) + 4./3.);
     
     xWeightGradient.push_back(-(1+x) * (1+x) / 2. + 2 * (1+x) - 2);
-    xWeightGradient.push_back(1.5 * x * x - 2 * x + 2./3.);
-    xWeightGradient.push_back(-1.5 * (1-x) * (1-x) + 2 * (1-x) + 2./3.);
-    xWeightGradient.push_back((2-x) * (2-x) / 3. - 2 * (2-x) + 2);
+    xWeightGradient.push_back(1.5 * x * x - 2 * x);
+    xWeightGradient.push_back(-1.5 * (1-x) * (1-x) + 2 * (1-x));
+    xWeightGradient.push_back((2-x) * (2-x) / 2. - 2 * (2-x) + 2);
     
     x = yDiff;
     yWeight.push_back(-(1+x) * (1+x) * (1+x) / 6. + (1+x) * (1+x) - 2 * (1+x) + 4./3.);
@@ -73,8 +88,8 @@ void Particle::calculateWeights() {
     yWeight.push_back(-(2-x) * (2-x) * (2-x) / 6. + (2-x) * (2-x) - 2 * (2-x) + 4./3.);
     
     yWeightGradient.push_back(-(1+x) * (1+x) / 2. + 2 * (1+x) - 2);
-    yWeightGradient.push_back(1.5 * x * x - 2 * x + 2./3.);
-    yWeightGradient.push_back(-1.5 * (1-x) * (1-x) + 2 * (1-x) + 2./3.);
-    yWeightGradient.push_back((2-x) * (2-x) / 3. - 2 * (2-x) + 2);
+    yWeightGradient.push_back(1.5 * x * x - 2 * x);
+    yWeightGradient.push_back(-1.5 * (1-x) * (1-x) + 2 * (1-x));
+    yWeightGradient.push_back((2-x) * (2-x) / 2. - 2 * (2-x) + 2);
 
 }
