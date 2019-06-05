@@ -12,7 +12,7 @@ MPM* mpm;
 
 bool simulate = false;
 
-int n = 30;
+int n = 50;
 double dTime = 0.005;
 
 void display() {
@@ -63,7 +63,7 @@ void idle() {
 }
 
 int main(int argc, char* argv[]) {
-    MaterialParameters material = MaterialParameters(1000, 0.2, 10, 0.025, 0.0075);
+    MaterialParameters material = MaterialParameters(10, 0.2, 10, 0.025, 0.0075);
     mpm = new MPM(n, dTime, material);    
 
     glutInit(&argc, argv);

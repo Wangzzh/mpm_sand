@@ -35,16 +35,37 @@ MPM::MPM(int nGrid, double timeStep, MaterialParameters material) {
     // p3 -> velocity << -0.2, 0.5;
     // particles.push_back(p3);
 
-    int divs = 100;
-    for (int i = 0; i < divs; i++) {
-        Particle* p = new Particle();
-        p -> mass = 0.04;
-        double x = 0.5 + (rand() % 10000) / 100000.;
-        double y = 0.8 + (rand() % 10000) / 100000.;
-        p -> position << x, y;
-        p -> velocity << 0, 0;
-        particles.push_back(p);
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            Particle* p = new Particle();
+            p -> mass = 0.04;
+            double x = 0.5 + (double)i/100.0;
+            double y = 0.1 + (double)j/100.0;
+            p -> position << x, y;
+            if (p->position[0] < 0.55) {
+            p -> velocity << -0.3, 0;
+            } else {
+            p -> velocity << 0.3, 0;
+            }
+            particles.push_back(p);
+
+        }
     }
+
+    // int divs = 100;
+    // for (int i = 0; i < divs; i++) {
+    //     Particle* p = new Particle();
+    //     p -> mass = 0.04;
+    //     double x = 0.5 + (rand() % 10000) / 100000.;
+    //     double y = 0.1 + (rand() % 10000) / 100000.;
+    //     p -> position << x, y;
+    //     if (p->position[0] < 0.55) {
+    //     p -> velocity << -0, 0;
+    //     } else {
+    //     p -> velocity << 0, 0;
+    //     }
+    //     particles.push_back(p);
+    // }
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {
@@ -152,7 +173,7 @@ void MPM::computeParticleDensity() {
 
 void MPM::computeGridForce() {
     Eigen::Vector2d gravity;
-    gravity << 0., -10;
+    gravity << 0., 0;
 
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
@@ -183,6 +204,8 @@ void MPM::computeGridForce() {
         // std::cout << "SR" << std::endl << RE * S << std::endl << particle->FE << std::endl;
 
         Eigen::Matrix2d PF = 2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
+        //2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
+
         // std::cout << "F-R" << std::endl << particle->FE - RE << std::endl;
         // std::cout << "JE*:" << (JE-1) * JE << std::endl; 
         // std::cout << "PF:" << std::endl << PF << std::endl; 
