@@ -12,7 +12,7 @@ void Grid::render() {
     glPopMatrix();
     
     if (Grid::renderV) {
-        glColor3f(1, 1, 0);
+        glColor3f(1, 0, 0);
         double velocityFactor = 2;
         glBegin(GL_LINES);
         glVertex3f(position[0], position[1], 0.0);

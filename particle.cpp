@@ -14,6 +14,7 @@ void Particle::render() {
     glPopMatrix();
 
     if (Particle::renderV) {
+        glColor3f(1, 1, 0);
         double velocityFactor = 0.02;
         glBegin(GL_LINES);
         glVertex3f(position[0], position[1], 0.0);

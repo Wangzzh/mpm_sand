@@ -40,12 +40,29 @@ MPM::MPM(int nGrid, double timeStep, MaterialParameters material) {
             Particle* p = new Particle();
             p -> mass = 0.04;
             double x = 0.5 + (double)i/100.0;
-            double y = 0.1 + (double)j/100.0;
+            double y = 0.5 + (double)j/100.0;
             p -> position << x, y;
             if (p->position[0] < 0.55) {
-            p -> velocity << -0.3, 0;
+            p -> velocity << -0.1, 0;
             } else {
-            p -> velocity << 0.3, 0;
+            p -> velocity << 0.1, 0;
+            }
+            particles.push_back(p);
+
+        }
+    }
+
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            Particle* p = new Particle();
+            p -> mass = 0.04;
+            double x = 0.52 + (double)i/100.0;
+            double y = 0.7 + (double)j/100.0;
+            p -> position << x, y;
+            if (p->position[0] < 0.55) {
+            p -> velocity << -0.1, 0;
+            } else {
+            p -> velocity << 0.1, 0;
             }
             particles.push_back(p);
 
@@ -103,13 +120,13 @@ void MPM::step() {
 
 void MPM::render() {
     // Rendering particles
-    glColor3f(1, 0, 0);
+    glColor3f(1, 1, 0);
     for (auto& particle : particles) {
         particle->render();
     }
     
     // Rendering grids
-    glColor3f(1, 1, 0);
+    glColor3f(1, 0, 0);
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
             grid -> render();
@@ -125,8 +142,10 @@ void MPM::particleToGrid() {
         }
     }
     for (auto& particle : particles) {
-        particle->xLeft = (int) (particle->position[0] * nGrid - 0.5);
-        particle->yLeft = (int) (particle->position[1] * nGrid - 0.5);
+        // particle->xLeft = (int) (particle->position[0] * nGrid - 0.5);
+        // particle->yLeft = (int) (particle->position[1] * nGrid - 0.5);
+        particle->xLeft = floor(particle->position[0] * nGrid);
+        particle->yLeft = floor(particle->position[1] * nGrid);
         particle->xDiff = (particle->position[0] * nGrid) - particle->xLeft - 0.0;
         particle->yDiff = (particle->position[1] * nGrid) - particle->yLeft - 0.0;
         // particle->xDiff = (particle->position[0] * nGrid) - particle->xLeft - 0.5;
@@ -173,7 +192,7 @@ void MPM::computeParticleDensity() {
 
 void MPM::computeGridForce() {
     Eigen::Vector2d gravity;
-    gravity << 0., 0;
+    gravity << 0., -2;
 
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
