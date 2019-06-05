@@ -12,8 +12,8 @@ MPM* mpm;
 
 bool simulate = false;
 
-int n = 50;
-double dTime = 0.005;
+int n = 40;
+double dTime = 0.002;
 
 void display() {
     glClearColor(0, 0, 0, 0);
@@ -56,14 +56,15 @@ void keyboard(unsigned char key, int x, int y) {
 
 void idle() {
     if (simulate) {
-        std::cout << "Auto step" << std::endl;
+        // std::cout << "Auto step" << std::endl;
         mpm->step();
     }
     glutPostRedisplay();
 }
 
 int main(int argc, char* argv[]) {
-    MaterialParameters material = MaterialParameters(1000, 0.2, 10, 0.025, 0.0075);
+    // MaterialParameters material = MaterialParameters(1000, 0.2, 10, 0.025, 0.0075); // elastic
+    MaterialParameters material = MaterialParameters(8000, 0.2, 10, 0.0005, 0.0001); // collapsing
     mpm = new MPM(n, dTime, material);    
 
     glutInit(&argc, argv);

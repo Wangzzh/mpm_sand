@@ -35,54 +35,101 @@ MPM::MPM(int nGrid, double timeStep, MaterialParameters material) {
     // p3 -> velocity << -0.2, 0.5;
     // particles.push_back(p3);
 
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
-            Particle* p = new Particle();
-            p -> mass = 0.04;
-            double x = 0.5 + (double)i/100.0;
-            double y = 0.5 + (double)j/100.0;
-            p -> position << x, y;
-            if (p->position[0] < 0.55) {
-            p -> velocity << -0.1, 0;
-            } else {
-            p -> velocity << 0.1, 0;
-            }
-            particles.push_back(p);
+    // int ds = 8;
 
-        }
-    }
+    // for (int i = 0; i < ds; i++) {
+    //     for (int j = 0; j < ds; j++) {
+    //         Particle* p = new Particle();
+    //         p -> mass = 0.04;
+    //         double x = 0.53 + (double)i/ds/10.;
+    //         double y = 0.5 + (double)j/ds/10.;
+    //         p -> position << x, y;
+    //         if (p->position[0] < 0.55) {
+    //         p -> velocity << -0., 0;
+    //         } else {
+    //         p -> velocity << 0., 0;
+    //         }
+    //         particles.push_back(p);
 
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
-            Particle* p = new Particle();
-            p -> mass = 0.04;
-            double x = 0.52 + (double)i/100.0;
-            double y = 0.7 + (double)j/100.0;
-            p -> position << x, y;
-            if (p->position[0] < 0.55) {
-            p -> velocity << -0.1, 0;
-            } else {
-            p -> velocity << 0.1, 0;
-            }
-            particles.push_back(p);
-
-        }
-    }
-
-    // int divs = 100;
-    // for (int i = 0; i < divs; i++) {
-    //     Particle* p = new Particle();
-    //     p -> mass = 0.04;
-    //     double x = 0.5 + (rand() % 10000) / 100000.;
-    //     double y = 0.1 + (rand() % 10000) / 100000.;
-    //     p -> position << x, y;
-    //     if (p->position[0] < 0.55) {
-    //     p -> velocity << -0, 0;
-    //     } else {
-    //     p -> velocity << 0, 0;
     //     }
-    //     particles.push_back(p);
     // }
+
+    // for (int i = 0; i < ds; i++) {
+    //     for (int j = 0; j < ds; j++) {
+    //         Particle* p = new Particle();
+    //         p -> mass = 0.04;
+    //         double x = 0.52 + (double)i/ds/10. - (double)j/ds/30;
+    //         double y = 0.7 + (double)j/ds/10. + (double)i/ds/30;
+    //         p -> position << x, y;
+    //         if (p->position[0] < 0.55) {
+    //         p -> velocity << -0., 0;
+    //         } else {
+    //         p -> velocity << 0., 0;
+    //         }
+    //         particles.push_back(p);
+
+    //     }
+    // }
+
+    // for (int i = 0; i < ds; i++) {
+    //     for (int j = 0; j < ds; j++) {
+    //         Particle* p = new Particle();
+    //         p -> mass = 0.04;
+    //         double x = 0.44 + (double)i/ds/12.;
+    //         double y = 0.85 + (double)j/ds/12.;
+    //         p -> position << x, y;
+    //         if (p->position[0] < 0.55) {
+    //         p -> velocity << -0., 0;
+    //         } else {
+    //         p -> velocity << 0., 0;
+    //         }
+    //         particles.push_back(p);
+
+    //     }
+    // }
+
+    int divs = 100;
+    for (int i = 0; i < divs; i++) {
+        Particle* p = new Particle();
+        p -> mass = 0.04;
+        double x = 0.5 + (rand() % 10000) / 100000.;
+        double y = 0.4 + (rand() % 10000) / 100000.;
+        p -> position << x, y;
+        if (p->position[0] < 0.55) {
+        p -> velocity << -0, 0;
+        } else {
+        p -> velocity << 0, 0;
+        }
+        particles.push_back(p);
+    }
+    
+    for (int i = 0; i < divs; i++) {
+        Particle* p = new Particle();
+        p -> mass = 0.04;
+        double x = 0.53 + (rand() % 10000) / 100000.;
+        double y = 0.6 + (rand() % 10000) / 100000.;
+        p -> position << x, y;
+        if (p->position[0] < 0.55) {
+        p -> velocity << -0, 0;
+        } else {
+        p -> velocity << 0, 0;
+        }
+        particles.push_back(p);
+    }
+
+    for (int i = 0; i < divs; i++) {
+        Particle* p = new Particle();
+        p -> mass = 0.04;
+        double x = 0.46 + (rand() % 10000) / 100000.;
+        double y = 0.82 + (rand() % 10000) / 100000.;
+        p -> position << x, y;
+        if (p->position[0] < 0.55) {
+        p -> velocity << -0, 0;
+        } else {
+        p -> velocity << 0, 0;
+        }
+        particles.push_back(p);
+    }
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {
@@ -192,7 +239,7 @@ void MPM::computeParticleDensity() {
 
 void MPM::computeGridForce() {
     Eigen::Vector2d gravity;
-    gravity << 0., -2;
+    gravity << 0., -10;
 
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
@@ -255,6 +302,9 @@ void MPM::computeGridVelocity() {
 }
 
 void MPM::updateDeformation() {
+    double maxS = -10000;
+    double minS = 10000;
+
     for (auto& particle : particles) {   
         Eigen::Matrix2d velocityGradient = Eigen::Matrix2d::Zero();
 
@@ -274,37 +324,42 @@ void MPM::updateDeformation() {
 
         // std::cout << "vgrad: " << std::endl << velocityGradient << std::endl;
         Eigen::Matrix2d Fnew = (Eigen::Matrix2d::Identity() + timeStep * velocityGradient) * particle->FE;
-        particle->FE = Fnew;
+        // particle->FE = Fnew;
         
         // std::cout << "Fnew: " << std::endl << Fnew << std::endl;
 
-        // Eigen::JacobiSVD<Eigen::MatrixXd> svd(Fnew, Eigen::ComputeThinU | Eigen::ComputeThinV);
-        // Eigen::Matrix2d U = svd.matrixU();
-        // Eigen::Matrix2d V = svd.matrixV();
-        // Eigen::Matrix2d S = U.inverse() * Fnew * V.transpose().inverse();
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd(Fnew, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        Eigen::Matrix2d U = svd.matrixU();
+        Eigen::Matrix2d V = svd.matrixV();
+        Eigen::Matrix2d S = U.inverse() * Fnew * V.transpose().inverse();
         
         
         // std::cout << "S: " << std::endl << S << std::endl;
-        // for (int i = 0; i < 2; i++) {
-        //     if (S(i, i) > 1 + material.thetaS) S(i, i) = 1 + material.thetaS;
-        //     if (S(i, i) < 1 - material.thetaC) S(i, i) = 1 - material.thetaC;
-        // }
+        for (int i = 0; i < 2; i++) {
+            if (S(i, i) > maxS) maxS = S(i, i);
+            if (S(i, i) < minS) minS = S(i, i);
+            if (S(i, i) > 1 + material.thetaS) S(i, i) = 1 + material.thetaS;
+            if (S(i, i) < 1 - material.thetaC) S(i, i) = 1 - material.thetaC;
+        }
 
-        // particle->FE = U * S * V.transpose();
-        // particle->FP = (V * S.inverse() * U.transpose() * Fnew) * particle->FP;
+
+        particle->FE = U * S * V.transpose();
+        particle->FP = (V * S.inverse() * U.transpose() * Fnew) * particle->FP;
         
         // std::cout << "FE: " << std::endl << particle->FE << std::endl;
         // std::cout << "FP: " << std::endl << particle->FP << std::endl;
 
     }
+    
+    // std::cout << minS << " ~ " << maxS << std::endl;
 
 }
 
 void MPM::updateParticleVelocity() {
-    double alpha = 0.;
+    double alpha = 0.05;
     for (auto& particle : particles) {   
         Eigen::Vector2d vPIC = Eigen::Vector2d::Zero();
-        // Eigen::Vector2d vFLIP = particle->velocity;
+        Eigen::Vector2d vFLIP = particle->velocity;
         particle->B = Eigen::Matrix2d::Zero();
 
         for (int dx = -1; dx <= 2; dx++) {
@@ -317,14 +372,14 @@ void MPM::updateParticleVelocity() {
                     Eigen::Vector2d gridV = grids[xGrid][yGrid]->linearMomentum / grids[xGrid][yGrid] -> mass;
                     Eigen::Vector2d gridNewV = grids[xGrid][yGrid]->newLinearMomentum / grids[xGrid][yGrid] -> mass;
                     vPIC += particle->xWeight[dx+1] * particle->yWeight[dy+1] * gridNewV;
-                    // vFLIP += particle->xWeight[dx+1] * particle->yWeight[dy+1] * (gridNewV - gridV);
+                    vFLIP += particle->xWeight[dx+1] * particle->yWeight[dy+1] * (gridNewV - gridV);
                     particle->B += particle->xWeight[dx+1] * particle->yWeight[dy+1] * gridNewV * displacement.transpose(); 
                 }
             }
         }
 
-        // particle->velocity = (1-alpha) * vPIC + alpha * vFLIP;
-        particle->velocity = vPIC;
+        particle->velocity = (1-alpha) * vPIC + alpha * vFLIP;
+        // particle->velocity = vPIC;
     }
 }
 
@@ -332,6 +387,7 @@ void MPM::handleParticleCollision() {
     for (auto& particle : particles) {
         if (particle -> position[1] <= 0.1 && particle -> velocity[1] <= 0.) {
             particle -> velocity[1] = 0;
+            particle -> velocity[0] *= 0.999;
         }
     }
 }

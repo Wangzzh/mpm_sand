@@ -8,7 +8,7 @@ void Grid::render() {
     glPushMatrix();
     glLoadIdentity();
     glTranslatef(position[0], position[1], 0.);
-    glutSolidSphere(0.002, 10, 10);
+    glutSolidSphere(0.002, 3, 3);
     glPopMatrix();
     
     if (Grid::renderV) {

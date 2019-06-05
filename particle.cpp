@@ -10,7 +10,7 @@ void Particle::render() {
     glPushMatrix();
     glLoadIdentity();
     glTranslatef(position[0], position[1], 0.);
-    glutSolidSphere(0.002, 4, 4);
+    glutSolidSphere(0.004, 3, 3);
     glPopMatrix();
 
     if (Particle::renderV) {
