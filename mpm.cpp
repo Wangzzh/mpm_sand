@@ -17,119 +17,8 @@ MPM::MPM(int nGrid, double timeStep, MaterialParameters material) {
     this->timeStep = timeStep;
     this->material = material;
 
-    // Particle* p1 = new Particle();
-    // p1 -> mass = 1;
-    // p1 -> position << 0.47, 0.63;
-    // p1 -> velocity << 1.0, 0.0;
-    // particles.push_back(p1);
-    
-    // Particle* p2 = new Particle();
-    // p2 -> mass = 2;
-    // p2 -> position << 0.5, 0.52;
-    // p2 -> velocity << 0.5, 0.5;
-    // particles.push_back(p2);
-
-    // Particle* p3 = new Particle();
-    // p3 -> mass = 1;
-    // p3 -> position << 0.81, 0.87;
-    // p3 -> velocity << -0.2, 0.5;
-    // particles.push_back(p3);
-
-    // int ds = 8;
-
-    // for (int i = 0; i < ds; i++) {
-    //     for (int j = 0; j < ds; j++) {
-    //         Particle* p = new Particle();
-    //         p -> mass = 0.04;
-    //         double x = 0.53 + (double)i/ds/10.;
-    //         double y = 0.5 + (double)j/ds/10.;
-    //         p -> position << x, y;
-    //         if (p->position[0] < 0.55) {
-    //         p -> velocity << -0., 0;
-    //         } else {
-    //         p -> velocity << 0., 0;
-    //         }
-    //         particles.push_back(p);
-
-    //     }
-    // }
-
-    // for (int i = 0; i < ds; i++) {
-    //     for (int j = 0; j < ds; j++) {
-    //         Particle* p = new Particle();
-    //         p -> mass = 0.04;
-    //         double x = 0.52 + (double)i/ds/10. - (double)j/ds/30;
-    //         double y = 0.7 + (double)j/ds/10. + (double)i/ds/30;
-    //         p -> position << x, y;
-    //         if (p->position[0] < 0.55) {
-    //         p -> velocity << -0., 0;
-    //         } else {
-    //         p -> velocity << 0., 0;
-    //         }
-    //         particles.push_back(p);
-
-    //     }
-    // }
-
-    // for (int i = 0; i < ds; i++) {
-    //     for (int j = 0; j < ds; j++) {
-    //         Particle* p = new Particle();
-    //         p -> mass = 0.04;
-    //         double x = 0.44 + (double)i/ds/12.;
-    //         double y = 0.85 + (double)j/ds/12.;
-    //         p -> position << x, y;
-    //         if (p->position[0] < 0.55) {
-    //         p -> velocity << -0., 0;
-    //         } else {
-    //         p -> velocity << 0., 0;
-    //         }
-    //         particles.push_back(p);
-
-    //     }
-    // }
-
-    int divs = 100;
-    for (int i = 0; i < divs; i++) {
-        Particle* p = new Particle();
-        p -> mass = 0.04;
-        double x = 0.5 + (rand() % 10000) / 100000.;
-        double y = 0.4 + (rand() % 10000) / 100000.;
-        p -> position << x, y;
-        if (p->position[0] < 0.55) {
-        p -> velocity << -0, 0;
-        } else {
-        p -> velocity << 0, 0;
-        }
-        particles.push_back(p);
-    }
-    
-    for (int i = 0; i < divs; i++) {
-        Particle* p = new Particle();
-        p -> mass = 0.04;
-        double x = 0.53 + (rand() % 10000) / 100000.;
-        double y = 0.6 + (rand() % 10000) / 100000.;
-        p -> position << x, y;
-        if (p->position[0] < 0.55) {
-        p -> velocity << -0, 0;
-        } else {
-        p -> velocity << 0, 0;
-        }
-        particles.push_back(p);
-    }
-
-    for (int i = 0; i < divs; i++) {
-        Particle* p = new Particle();
-        p -> mass = 0.04;
-        double x = 0.46 + (rand() % 10000) / 100000.;
-        double y = 0.82 + (rand() % 10000) / 100000.;
-        p -> position << x, y;
-        if (p->position[0] < 0.55) {
-        p -> velocity << -0, 0;
-        } else {
-        p -> velocity << 0, 0;
-        }
-        particles.push_back(p);
-    }
+    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.1, 0.1), 0.4, 12, 1);
+    addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 12, 1);
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {
@@ -139,6 +28,31 @@ MPM::MPM(int nGrid, double timeStep, MaterialParameters material) {
             grids[i][j]->linearMomentum << i * 0.1, j * 0.1;
         }
     }
+}
+
+
+void MPM::addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, int div, int random)
+{
+    for (int i = 0; i < div; i++) {
+        for (int j = 0; j < div; j++) {
+            Particle* p = new Particle();
+            p -> mass = 0.04;
+            double x, y;
+            if (random == 1) {
+                double rx = rand() % 10000 / 10000. - 0.5;
+                double ry = rand() % 10000 / 10000. - 0.5;
+                x = position(0) + cos(angle) * size(0) * rx + sin(angle) * size(1) * ry;
+                y = position(1) + cos(angle) * size(1) * ry - sin(angle) * size(0) * rx;
+            } else {
+                x = position(0) + cos(angle) * size(0) * (1./((double)div-1.)*(double)i-0.5) + sin(angle) * size(1) * (1./((double)div-1.)*(double)j-0.5);
+                y = position(1) + cos(angle) * size(1) * (1./((double)div-1.)*(double)j-0.5) - sin(angle) * size(0) * (1./((double)div-1.)*(double)i-0.5);
+            }
+            p -> position << x, y;
+            p -> velocity << 0., 0;
+            particles.push_back(p);
+        }
+    }
+
 }
 
 MPM::~MPM() {
@@ -297,6 +211,9 @@ void MPM::computeGridVelocity() {
         for (auto& grid : gridVec) {
             // std::cout << grid->force << std::endl << std::endl;
             grid -> newLinearMomentum = grid -> linearMomentum + timeStep * grid->force;
+            if (grid -> position(1) < 0.1 && grid -> newLinearMomentum(1) < 0.) {
+                grid -> newLinearMomentum(1) = 0;
+            }
         }
     }
 }
@@ -384,12 +301,12 @@ void MPM::updateParticleVelocity() {
 }
 
 void MPM::handleParticleCollision() {
-    for (auto& particle : particles) {
-        if (particle -> position[1] <= 0.1 && particle -> velocity[1] <= 0.) {
-            particle -> velocity[1] = 0;
-            particle -> velocity[0] *= 0.999;
-        }
-    }
+    // for (auto& particle : particles) {
+    //     if (particle -> position[1] <= 0.1 && particle -> velocity[1] <= 0.) {
+    //         particle -> velocity[1] = 0;
+    //         particle -> velocity[0] *= 0.999;
+    //     }
+    // }
 }
 
 void MPM::updateParticlePosition() {

@@ -41,6 +41,8 @@ private:
     void handleParticleCollision();
     void updateParticlePosition();
 
+    void addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, int div, int random);
+
     double timeStep;
     double time;
 

@@ -12,7 +12,7 @@ MPM* mpm;
 
 bool simulate = false;
 
-int n = 40;
+int n = 100;
 double dTime = 0.002;
 
 void display() {
@@ -64,7 +64,7 @@ void idle() {
 
 int main(int argc, char* argv[]) {
     // MaterialParameters material = MaterialParameters(1000, 0.2, 10, 0.025, 0.0075); // elastic
-    MaterialParameters material = MaterialParameters(8000, 0.2, 10, 0.0005, 0.0001); // collapsing
+    MaterialParameters material = MaterialParameters(10000, 0.2, 1, 0.005, 0.0015); // collapsing
     mpm = new MPM(n, dTime, material);    
 
     glutInit(&argc, argv);
