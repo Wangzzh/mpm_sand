@@ -7,6 +7,8 @@
 #include "GL/gl.h"
 #include "GL/glut.h"
 
+#include "material.hpp"
+
 class Particle
 {
 public:
@@ -19,6 +21,8 @@ public:
     double mass;
     // double density;
     double volume = 1.0;
+    MaterialParameters* material;
+    Eigen::Vector3d color;
 
     Eigen::Vector2d position;
     Eigen::Vector2d velocity;

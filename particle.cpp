@@ -6,6 +6,7 @@ bool Particle::renderFE = false;
 bool Particle::renderB = false;
 
 void Particle::render() {
+    glColor3f(color(0), color(1), color(2));
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();

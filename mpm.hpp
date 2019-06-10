@@ -13,20 +13,12 @@
 
 #include "particle.hpp"
 #include "grid.hpp"
-
-class MaterialParameters 
-{
-public:
-    MaterialParameters() {}
-    MaterialParameters(double youngsModulus, double poissonsRatio, 
-        double hardening, double criticalCompression, double criticalStretch);
-    double E, nu, xsi, thetaC, thetaS, lambda, mu;
-};
+#include "material.hpp"
 
 class MPM
 {
 public:
-    MPM(int nGrid, double timeStep, MaterialParameters material);
+    MPM(int nGrid, double timeStep);
     ~MPM();
     void render();
     void step();
@@ -41,7 +33,8 @@ private:
     void handleParticleCollision();
     void updateParticlePosition();
 
-    void addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, int div, int random);
+    void addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, 
+        int div, int random, MaterialParameters* material, Eigen::Vector3d color);
 
     double timeStep;
     double time;
@@ -49,6 +42,5 @@ private:
     int nGrid;
     std::vector<Particle*> particles;
     std::vector<std::vector<Grid*>> grids;
-    
-    MaterialParameters material;
+    std::vector<MaterialParameters*> materials;
 };

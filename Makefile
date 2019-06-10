@@ -3,8 +3,8 @@ EIGEN_LIB=-I /usr/include/eigen3
 
 all: main
 
-main: main.o particle.o mpm.o grid.o
-	g++ -o main main.o particle.o mpm.o grid.o $(OPENGL_LIB) $(EIGEN_LIB)
+main: main.o particle.o mpm.o grid.o material.o
+	g++ -o main main.o particle.o mpm.o grid.o material.o $(OPENGL_LIB) $(EIGEN_LIB)
 
 main.o: main.cpp
 	g++ -c main.cpp $(OPENGL_LIB) $(EIGEN_LIB)
@@ -17,6 +17,9 @@ particle.o: particle.cpp particle.hpp
 
 grid.o: grid.cpp grid.hpp
 	g++ -c grid.cpp $(OPENGL_LIB) $(EIGEN_LIB)
+
+material.o: material.cpp material.hpp
+	g++ -c material.cpp $(OPENGL_LIB) $(EIGEN_LIB)
 
 .PHONY: clean
 clean:

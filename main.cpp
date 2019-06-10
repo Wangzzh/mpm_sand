@@ -63,9 +63,7 @@ void idle() {
 }
 
 int main(int argc, char* argv[]) {
-    // MaterialParameters material = MaterialParameters(1000, 0.2, 10, 0.025, 0.0075); // elastic
-    MaterialParameters material = MaterialParameters(10000, 0.2, 1, 0.005, 0.0015); // collapsing
-    mpm = new MPM(n, dTime, material);    
+    mpm = new MPM(n, dTime);    
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);

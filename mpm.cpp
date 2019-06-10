@@ -1,24 +1,17 @@
 #include "mpm.hpp"
 
-MaterialParameters::MaterialParameters(double youngsModulus, double poissonsRatio, 
-        double hardening, double criticalCompression, double criticalStretch) {
-    this->E = youngsModulus;
-    this->nu = poissonsRatio;
-    this->xsi = hardening;
-    this->thetaC = criticalCompression;
-    this->thetaS = criticalStretch;
-    this->lambda = E * nu / (1 + nu) / (1 - 2 * nu);
-    this->mu = E / 2 / (1 + nu);
-}
 
-MPM::MPM(int nGrid, double timeStep, MaterialParameters material) {
+MPM::MPM(int nGrid, double timeStep) {
     this->nGrid = nGrid;
     this->time = 0;
     this->timeStep = timeStep;
-    this->material = material;
+    
+    // MaterialParameters material = MaterialParameters(1000, 0.2, 10, 0.025, 0.0075, 1000); // elastic
+    MaterialParameters* material = new MaterialParameters(10000, 0.2, 1, 0.005, 0.0015, 1000); // collapsing
+    materials.push_back(material);
 
-    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.1, 0.1), 0.4, 12, 1);
-    addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 12, 1);
+    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.1, 0.1), 0.4, 12, 1, materials[0], Eigen::Vector3d(1, 1, 1));
+    addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 12, 1, materials[0], Eigen::Vector3d(1, 1, 0.5));
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {
@@ -31,12 +24,14 @@ MPM::MPM(int nGrid, double timeStep, MaterialParameters material) {
 }
 
 
-void MPM::addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, int div, int random)
+void MPM::addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, 
+                    int div, int random, 
+                    MaterialParameters* material, Eigen::Vector3d color)
 {
     for (int i = 0; i < div; i++) {
         for (int j = 0; j < div; j++) {
             Particle* p = new Particle();
-            p -> mass = 0.04;
+            p -> mass = material->rho * size(0) * size(1) / (double)div / (double)div;
             double x, y;
             if (random == 1) {
                 double rx = rand() % 10000 / 10000. - 0.5;
@@ -49,6 +44,8 @@ void MPM::addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, 
             }
             p -> position << x, y;
             p -> velocity << 0., 0;
+            p -> material = material;
+            p -> color = color;
             particles.push_back(p);
         }
     }
@@ -63,6 +60,9 @@ MPM::~MPM() {
         for (auto& grid : gridVec) {
             delete grid;
         }
+    }
+    for (auto& material : materials) {
+        delete material;
     }
 }
 
@@ -164,8 +164,8 @@ void MPM::computeGridForce() {
     for (auto& particle : particles) {   
         double JE = particle->FE.determinant();
         double JP = particle->FP.determinant();
-        double lambda = material.lambda * exp(material.xsi * (1 - JP));
-        double mu = material.mu * exp(material.xsi * (1 - JP));
+        double lambda = particle->material->lambda * exp(particle->material->xsi * (1 - JP));
+        double mu = particle->material->mu * exp(particle->material->xsi * (1 - JP));
         // std::cout << "JE: " << JE << std::endl;
         // std::cout << "JP: " << JP << std::endl;
         // std::cout << "lambda: " << lambda << std::endl;
@@ -255,8 +255,8 @@ void MPM::updateDeformation() {
         for (int i = 0; i < 2; i++) {
             if (S(i, i) > maxS) maxS = S(i, i);
             if (S(i, i) < minS) minS = S(i, i);
-            if (S(i, i) > 1 + material.thetaS) S(i, i) = 1 + material.thetaS;
-            if (S(i, i) < 1 - material.thetaC) S(i, i) = 1 - material.thetaC;
+            if (S(i, i) > 1 + particle->material->thetaS) S(i, i) = 1 + particle->material->thetaS;
+            if (S(i, i) < 1 - particle->material->thetaC) S(i, i) = 1 - particle->material->thetaC;
         }
 
 
