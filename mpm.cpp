@@ -10,8 +10,9 @@ MPM::MPM(int nGrid, double timeStep) {
     MaterialParameters* material = new MaterialParameters(10000, 0.2, 1, 0.005, 0.0015, 1000); // collapsing
     materials.push_back(material);
 
-    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.1, 0.1), 0.4, 12, 1, materials[0], Eigen::Vector3d(1, 1, 1));
-    addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 12, 1, materials[0], Eigen::Vector3d(1, 1, 0.5));
+    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.1, 0.1), 0.4, 10, 1, materials[0], Eigen::Vector3d(1, 1, 1));
+    addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 10, 1, materials[0], Eigen::Vector3d(0.5, 0.5, 1));
+    addCube(Eigen::Vector2d(0.3, 0.8), Eigen::Vector2d(0.15, 0.15), 0.2, 12, 1, materials[0], Eigen::Vector3d(0.5, 1, 0.5));
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {
@@ -211,9 +212,9 @@ void MPM::computeGridVelocity() {
         for (auto& grid : gridVec) {
             // std::cout << grid->force << std::endl << std::endl;
             grid -> newLinearMomentum = grid -> linearMomentum + timeStep * grid->force;
-            if (grid -> position(1) < 0.1 && grid -> newLinearMomentum(1) < 0.) {
-                grid -> newLinearMomentum(1) = 0;
-            }
+            // if (grid -> position(1) < 0.1 && grid -> newLinearMomentum(1) < 0.) {
+            //     grid -> newLinearMomentum(1) = 0;
+            // }
         }
     }
 }
@@ -249,20 +250,32 @@ void MPM::updateDeformation() {
         Eigen::Matrix2d U = svd.matrixU();
         Eigen::Matrix2d V = svd.matrixV();
         Eigen::Matrix2d S = U.inverse() * Fnew * V.transpose().inverse();
+
+        double k = 1.2;
+        Eigen::Matrix2d e;
+        e << log(S(0, 0)), 0, 0, log(S(1, 1));
         
-        
-        // std::cout << "S: " << std::endl << S << std::endl;
-        for (int i = 0; i < 2; i++) {
-            if (S(i, i) > maxS) maxS = S(i, i);
-            if (S(i, i) < minS) minS = S(i, i);
-            if (S(i, i) > 1 + particle->material->thetaS) S(i, i) = 1 + particle->material->thetaS;
-            if (S(i, i) < 1 - particle->material->thetaC) S(i, i) = 1 - particle->material->thetaC;
+        if (e(0, 0) + e(1, 1) >= 0) {
+            e(0, 0) = 0;
+            e(1, 1) = 0;
+        }
+        else if (e(1, 1) < k * e(0, 0)) {
+            e(0, 0) = (e(0, 0) + e(1, 1)) * 1. / (k + 1.);
+            e(1, 1) = (e(0, 0) + e(1, 1)) * k / (k + 1.);
+        }
+        else if (e(0, 0) < k * e(1, 1)) {
+            e(0, 0) = (e(0, 0) + e(1, 1)) * k / (k + 1.);
+            e(1, 1) = (e(0, 0) + e(1, 1)) * 1. / (k + 1.);
         }
 
+        S << exp(e(0, 0)), 0, 0, exp(e(1, 1));
 
         particle->FE = U * S * V.transpose();
         particle->FP = (V * S.inverse() * U.transpose() * Fnew) * particle->FP;
         
+        // particle->FE = Eigen::Matrix2d::Identity();
+        // particle->FP = Fnew * particle->FP;
+
         // std::cout << "FE: " << std::endl << particle->FE << std::endl;
         // std::cout << "FP: " << std::endl << particle->FP << std::endl;
 
