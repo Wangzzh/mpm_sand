@@ -12,7 +12,7 @@ MPM* mpm;
 
 bool simulate = false;
 
-int n = 100;
+int n = 50;
 double dTime = 0.002;
 
 void display() {
