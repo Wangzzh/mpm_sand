@@ -10,8 +10,8 @@ MPM::MPM(int nGrid, double timeStep) {
     MaterialParameters* material = new MaterialParameters(10000, 0.2, 1, 0.005, 0.0015, 1000); // collapsing
     materials.push_back(material);
 
-    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.2, 0.2), 0.4, 12, 1, materials[0], Eigen::Vector3d(1, 1, 1));
-    addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.2, 0.2), -0.1, 12, 1, materials[0], Eigen::Vector3d(1, 1, 0.5));
+    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.2, 0.2), 0.4, 15, 1, materials[0], Eigen::Vector3d(1, 1, 1));
+    addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.2, 0.2), -0.1, 15, 1, materials[0], Eigen::Vector3d(1, 1, 0.5));
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {
