@@ -184,7 +184,9 @@ void MPM::computeGridForce() {
         // std::cout << "R" << std::endl << RE << std::endl;
         // std::cout << "SR" << std::endl << RE * S << std::endl << particle->FE << std::endl;
 
-        Eigen::Matrix2d PF = 2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
+        // Eigen::Matrix2d PF = 2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
+        
+        Eigen::Matrix2d PF = (0.2 * 1000 * (JP - 1)) * particle->FE.transpose().inverse();
         //2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
 
         // std::cout << "F-R" << std::endl << particle->FE - RE << std::endl;
@@ -212,9 +214,9 @@ void MPM::computeGridVelocity() {
         for (auto& grid : gridVec) {
             // std::cout << grid->force << std::endl << std::endl;
             grid -> newLinearMomentum = grid -> linearMomentum + timeStep * grid->force;
-            // if (grid -> position(1) < 0.1 && grid -> newLinearMomentum(1) < 0.) {
-            //     grid -> newLinearMomentum(1) = 0;
-            // }
+            if (grid -> position(1) < 0.1 && grid -> newLinearMomentum(1) < 0.) {
+                grid -> newLinearMomentum(1) = 0;
+            }
         }
     }
 }
@@ -270,11 +272,11 @@ void MPM::updateDeformation() {
 
         S << exp(e(0, 0)), 0, 0, exp(e(1, 1));
 
-        particle->FE = U * S * V.transpose();
-        particle->FP = (V * S.inverse() * U.transpose() * Fnew) * particle->FP;
+        // particle->FE = U * S * V.transpose();
+        // particle->FP = (V * S.inverse() * U.transpose() * Fnew) * particle->FP;
         
-        // particle->FE = Eigen::Matrix2d::Identity();
-        // particle->FP = Fnew * particle->FP;
+        particle->FE = Eigen::Matrix2d::Identity();
+        particle->FP = Fnew * particle->FP;
 
         // std::cout << "FE: " << std::endl << particle->FE << std::endl;
         // std::cout << "FP: " << std::endl << particle->FP << std::endl;
