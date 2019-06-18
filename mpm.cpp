@@ -9,7 +9,7 @@ MPM::MPM(int nGrid, double timeStep) {
     MaterialParameters* material = new MaterialParameters(5000, 0.2, 1, 0.005, 0.0015, 1000); 
     materials.push_back(material);
 
-    // addCube(Eigen::Vector2d(0.5, 0.15), Eigen::Vector2d(0.1, 0.1), 0, 20, 1, materials[0], Eigen::Vector3d(1, 1, 1));
+    addCube(Eigen::Vector2d(0.5, 0.2), Eigen::Vector2d(0.2, 0.2), 0, 20, 1, materials[0], Eigen::Vector3d(1, 1, 1));
     // addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 10, 1, materials[0], Eigen::Vector3d(0.5, 0.5, 1));
     // addCube(Eigen::Vector2d(0.3, 0.8), Eigen::Vector2d(0.15, 0.15), 0.2, 12, 1, materials[0], Eigen::Vector3d(0.5, 1, 0.5));
 
@@ -154,7 +154,7 @@ void MPM::computeParticleDensity() {
 
 void MPM::computeGridForce() {
     Eigen::Vector2d gravity;
-    gravity << 0., -5;
+    gravity << 0., -10;
 
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
@@ -165,12 +165,12 @@ void MPM::computeGridForce() {
     for (auto& particle : particles) {   
         double JE = particle->FE.determinant();
         double JP = particle->FP.determinant();
-        double lambda = particle->material->lambda * exp(particle->material->xsi * (1 - JP));
-        double mu = particle->material->mu * exp(particle->material->xsi * (1 - JP));
-        // std::cout << "JE: " << JE << std::endl;
-        // std::cout << "JP: " << JP << std::endl;
-        // std::cout << "lambda: " << lambda << std::endl;
-        // std::cout << "mu: " << mu << std::endl;
+        // double lambda = particle->material->lambda * exp(particle->material->xsi * (1 - JP));
+        // double mu = particle->material->mu * exp(particle->material->xsi * (1 - JP));
+        
+        // Hardening removed 
+        double lambda = particle->material->lambda;
+        double mu = particle->material->mu;
 
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(particle->FE, Eigen::ComputeThinU | Eigen::ComputeThinV);
         Eigen::Matrix2d U = svd.matrixU();
@@ -178,11 +178,6 @@ void MPM::computeGridForce() {
         Eigen::Matrix2d RE = U * V.transpose();
         Eigen::Matrix2d Sig = U.inverse() * particle->FE * V.transpose().inverse();
         Eigen::Matrix2d S = V * Sig * V.transpose();
-        // std::cout << "U" << std::endl << U << std::endl;
-        // std::cout << "V" << std::endl << V << std::endl;
-        // std::cout << "S" << std::endl << S << std::endl;
-        // std::cout << "R" << std::endl << RE << std::endl;
-        // std::cout << "SR" << std::endl << RE * S << std::endl << particle->FE << std::endl;
 
         // Eigen::Matrix2d PF = 2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
         
@@ -210,7 +205,7 @@ void MPM::computeGridForce() {
 }
 
 void MPM::computeGridVelocity() {
-    double friction_mu = 1;
+    double friction_mu = 3.;
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
             // std::cout << grid->force << std::endl << std::endl;
@@ -219,12 +214,12 @@ void MPM::computeGridVelocity() {
                 if (abs(grid -> newLinearMomentum(0)) < friction_mu * abs(grid -> newLinearMomentum(1))) {
                     grid -> newLinearMomentum(1) = 0;
                     grid -> newLinearMomentum(0) = 0;
-                    grid -> color = Eigen::Vector3d(0.5, 1, 1);
+                    grid -> color = Eigen::Vector3d(0.2, 0.8, 0.8);
                 } else {
                     grid -> newLinearMomentum(0) = grid -> newLinearMomentum(0) / abs(grid -> newLinearMomentum(0)) * 
                         (abs(grid -> newLinearMomentum(0)) - friction_mu * abs(grid -> newLinearMomentum(1)));
                     grid -> newLinearMomentum(1) = 0;
-                    grid -> color = Eigen::Vector3d(1, 1, 0.5);
+                    grid -> color = Eigen::Vector3d(0.8, 0.2, 0.8);
                 }
             } else {
                 grid -> color = Eigen::Vector3d(0.2, 0.2, 0.2);
@@ -269,25 +264,49 @@ void MPM::updateDeformation() {
         Eigen::Matrix2d e;
         e << log(S(0, 0)), 0, 0, log(S(1, 1));
         
-        if (e(0, 0) + e(1, 1) >= 0) {
-            e(0, 0) = 0;
-            e(1, 1) = 0;
-            particle->color = Eigen::Vector3d(1, 0, 0);
-        }
-        else if (e(1, 1) < k * e(0, 0)) {
-            e(0, 0) = (e(0, 0) + e(1, 1)) * 1. / (k + 1.);
-            e(1, 1) = (e(0, 0) + e(1, 1)) * k / (k + 1.);
-            particle->color = Eigen::Vector3d(0, 0, 1);
-        }
-        else if (e(0, 0) < k * e(1, 1)) {
-            e(0, 0) = (e(0, 0) + e(1, 1)) * k / (k + 1.);
-            e(1, 1) = (e(0, 0) + e(1, 1)) * 1. / (k + 1.);
-            particle->color = Eigen::Vector3d(0, 0, 1);
-        } else {
-            particle->color = Eigen::Vector3d(0, 1, 0);
-        }
+        // if (e(0, 0) + e(1, 1) >= 0) {
+        //     e(0, 0) = 0;
+        //     e(1, 1) = 0;
+        //     particle->color = Eigen::Vector3d(1, 0, 0);
+        // }
+        // else if (e(1, 1) < k * e(0, 0)) {
+        //     e(0, 0) = (e(0, 0) + e(1, 1)) * 1. / (k + 1.);
+        //     e(1, 1) = (e(0, 0) + e(1, 1)) * k / (k + 1.);
+        //     particle->color = Eigen::Vector3d(0, 0, 1);
+        // }
+        // else if (e(0, 0) < k * e(1, 1)) {
+        //     e(0, 0) = (e(0, 0) + e(1, 1)) * k / (k + 1.);
+        //     e(1, 1) = (e(0, 0) + e(1, 1)) * 1. / (k + 1.);
+        //     particle->color = Eigen::Vector3d(0, 0, 1);
+        // } else {
+        //     particle->color = Eigen::Vector3d(0, 1, 0);
+        // }
 
-        S << exp(e(0, 0)), 0, 0, exp(e(1, 1));
+        // S << exp(e(0, 0)), 0, 0, exp(e(1, 1));
+
+        // Sand plasticity *UPDATE*
+        Eigen::Matrix2d ehat = e - e.trace() / 2. * Eigen::Matrix2d::Identity();
+        double normF_ehat = sqrt((ehat * ehat).trace());
+        double dgamma = normF_ehat + 
+            (particle->material->lambda + particle->material->mu) / particle->material->mu * 
+            e.trace() * particle->alpha;
+        if (dgamma < 0) {
+            particle->color = Eigen::Vector3d(0, 1, 0);
+        } 
+        else if (normF_ehat == 0 || e.trace()>0) {
+            S = Eigen::Matrix2d::Identity();
+            particle->q += sqrt((e * e).trace());
+            particle->color = Eigen::Vector3d(1, 0, 0);
+        } 
+        else {
+            Eigen::Matrix2d H = e - dgamma * ehat / normF_ehat;
+            S << exp(H(0, 0)), 0, 0, exp(H(1, 1));
+            particle->q += dgamma;
+            particle->color = Eigen::Vector3d(0, 0, 1);
+        }
+        particle->phi = particle->h0 + (particle->h1 * particle->q - particle->h3) * 
+            exp(-particle->h2 * particle->q);
+        particle->alpha = sqrt(2./3.) * 2 * sin(particle->phi*3.1416/180) / (3 - sin(particle->phi*3.1416/180));
 
         particle->FE = U * S * V.transpose();
         particle->FP = (V * S.inverse() * U.transpose() * Fnew) * particle->FP;
@@ -333,12 +352,12 @@ void MPM::updateParticleVelocity() {
 }
 
 void MPM::handleParticleCollision() {
-    for (auto& particle : particles) {
-        if (particle -> position[1] <= 0.1 && particle -> velocity[1] <= 0.) {
-            particle -> velocity[1] = 0;
-            // particle -> velocity[0] *= 0.99;
-        }
-    }
+    // for (auto& particle : particles) {
+    //     if (particle -> position[1] <= 0.1 && particle -> velocity[1] <= 0.) {
+    //         particle -> velocity[1] = 0;
+    //         particle -> velocity[0] *= 0.99;
+    //     }
+    // }
 }
 
 void MPM::updateParticlePosition() {

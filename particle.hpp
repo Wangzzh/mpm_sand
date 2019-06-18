@@ -37,6 +37,10 @@ public:
     std::vector<double> xWeight, yWeight;
     std::vector<double> xWeightGradient, yWeightGradient;
 
+    // Sand plasticity
+    double q = 0, phi = 30, alpha = sqrt(2./3.) / 2.5;
+    double h0 = 35, h1 = 9, h2 = 0.2, h3 = 10;
+
     void calculateWeights();
 };
 
