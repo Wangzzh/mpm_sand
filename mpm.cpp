@@ -6,11 +6,10 @@ MPM::MPM(int nGrid, double timeStep) {
     this->time = 0;
     this->timeStep = timeStep;
     
-    // MaterialParameters material = MaterialParameters(1000, 0.2, 10, 0.025, 0.0075, 1000); // elastic
-    MaterialParameters* material = new MaterialParameters(1000, 0.2, 1, 0.005, 0.0015, 1000); // collapsing
+    MaterialParameters* material = new MaterialParameters(5000, 0.2, 1, 0.005, 0.0015, 1000); 
     materials.push_back(material);
 
-    addCube(Eigen::Vector2d(0.5, 0.2), Eigen::Vector2d(0.2, 0.2), 0, 20, 1, materials[0], Eigen::Vector3d(1, 1, 1));
+    // addCube(Eigen::Vector2d(0.5, 0.15), Eigen::Vector2d(0.1, 0.1), 0, 20, 1, materials[0], Eigen::Vector3d(1, 1, 1));
     // addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 10, 1, materials[0], Eigen::Vector3d(0.5, 0.5, 1));
     // addCube(Eigen::Vector2d(0.3, 0.8), Eigen::Vector2d(0.15, 0.15), 0.2, 12, 1, materials[0], Eigen::Vector3d(0.5, 1, 0.5));
 
@@ -19,7 +18,8 @@ MPM::MPM(int nGrid, double timeStep) {
         for (int j = 0; j < nGrid; j++) {
             grids[i][j] = new Grid();
             grids[i][j]->position << (((double)i + 0.5) / nGrid), (((double)j + 0.5) / nGrid);
-            grids[i][j]->linearMomentum << i * 0.1, j * 0.1;
+            grids[i][j]->linearMomentum << 0, 0;
+            grids[i][j]->color = Eigen::Vector3d(0.5, 0, 0);
         }
     }
 }
@@ -88,7 +88,7 @@ void MPM::render() {
     }
     
     // Rendering grids
-    glColor3f(1, 0, 0);
+    glColor3f(0.5, 0, 0);
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
             grid -> render();
@@ -154,7 +154,7 @@ void MPM::computeParticleDensity() {
 
 void MPM::computeGridForce() {
     Eigen::Vector2d gravity;
-    gravity << 0., -10;
+    gravity << 0., -5;
 
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
@@ -186,8 +186,8 @@ void MPM::computeGridForce() {
 
         // Eigen::Matrix2d PF = 2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
         
-        Eigen::Matrix2d PF = (0.2 * 1000 * (JP - 1)) * particle->FE.transpose().inverse();
-        //2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
+        // Eigen::Matrix2d PF = (0.2 * 1000 * (JP - 1)) * particle->FE.transpose().inverse();
+        Eigen::Matrix2d PF = 2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
 
         // std::cout << "F-R" << std::endl << particle->FE - RE << std::endl;
         // std::cout << "JE*:" << (JE-1) * JE << std::endl; 
@@ -210,13 +210,24 @@ void MPM::computeGridForce() {
 }
 
 void MPM::computeGridVelocity() {
+    double friction_mu = 1;
     for (auto& gridVec : grids) {
         for (auto& grid : gridVec) {
             // std::cout << grid->force << std::endl << std::endl;
             grid -> newLinearMomentum = grid -> linearMomentum + timeStep * grid->force;
-            if (grid -> position(1) < 0.1 && grid -> newLinearMomentum(1) < 0.) {
-                grid -> newLinearMomentum(1) = 0;
-                grid -> newLinearMomentum(0) *= 0.9;
+            if (grid -> position(1) <= 0.1) {
+                if (abs(grid -> newLinearMomentum(0)) < friction_mu * abs(grid -> newLinearMomentum(1))) {
+                    grid -> newLinearMomentum(1) = 0;
+                    grid -> newLinearMomentum(0) = 0;
+                    grid -> color = Eigen::Vector3d(0.5, 1, 1);
+                } else {
+                    grid -> newLinearMomentum(0) = grid -> newLinearMomentum(0) / abs(grid -> newLinearMomentum(0)) * 
+                        (abs(grid -> newLinearMomentum(0)) - friction_mu * abs(grid -> newLinearMomentum(1)));
+                    grid -> newLinearMomentum(1) = 0;
+                    grid -> color = Eigen::Vector3d(1, 1, 0.5);
+                }
+            } else {
+                grid -> color = Eigen::Vector3d(0.2, 0.2, 0.2);
             }
         }
     }
@@ -254,30 +265,35 @@ void MPM::updateDeformation() {
         Eigen::Matrix2d V = svd.matrixV();
         Eigen::Matrix2d S = U.inverse() * Fnew * V.transpose().inverse();
 
-        double k = 1.2;
+        double k = 5;
         Eigen::Matrix2d e;
         e << log(S(0, 0)), 0, 0, log(S(1, 1));
         
         if (e(0, 0) + e(1, 1) >= 0) {
             e(0, 0) = 0;
             e(1, 1) = 0;
+            particle->color = Eigen::Vector3d(1, 0, 0);
         }
         else if (e(1, 1) < k * e(0, 0)) {
             e(0, 0) = (e(0, 0) + e(1, 1)) * 1. / (k + 1.);
             e(1, 1) = (e(0, 0) + e(1, 1)) * k / (k + 1.);
+            particle->color = Eigen::Vector3d(0, 0, 1);
         }
         else if (e(0, 0) < k * e(1, 1)) {
             e(0, 0) = (e(0, 0) + e(1, 1)) * k / (k + 1.);
             e(1, 1) = (e(0, 0) + e(1, 1)) * 1. / (k + 1.);
+            particle->color = Eigen::Vector3d(0, 0, 1);
+        } else {
+            particle->color = Eigen::Vector3d(0, 1, 0);
         }
 
         S << exp(e(0, 0)), 0, 0, exp(e(1, 1));
 
-        // particle->FE = U * S * V.transpose();
-        // particle->FP = (V * S.inverse() * U.transpose() * Fnew) * particle->FP;
+        particle->FE = U * S * V.transpose();
+        particle->FP = (V * S.inverse() * U.transpose() * Fnew) * particle->FP;
         
-        particle->FE = Eigen::Matrix2d::Identity();
-        particle->FP = Fnew * particle->FP;
+        // particle->FE = Eigen::Matrix2d::Identity();
+        // particle->FP = Fnew * particle->FP;
 
         // std::cout << "FE: " << std::endl << particle->FE << std::endl;
         // std::cout << "FP: " << std::endl << particle->FP << std::endl;
@@ -289,7 +305,7 @@ void MPM::updateDeformation() {
 }
 
 void MPM::updateParticleVelocity() {
-    double alpha = 0.05;
+    double alpha = 0.;
     for (auto& particle : particles) {   
         Eigen::Vector2d vPIC = Eigen::Vector2d::Zero();
         Eigen::Vector2d vFLIP = particle->velocity;
@@ -317,12 +333,12 @@ void MPM::updateParticleVelocity() {
 }
 
 void MPM::handleParticleCollision() {
-    // for (auto& particle : particles) {
-    //     if (particle -> position[1] <= 0.1 && particle -> velocity[1] <= 0.) {
-    //         particle -> velocity[1] = 0;
-    //         particle -> velocity[0] *= 0.999;
-    //     }
-    // }
+    for (auto& particle : particles) {
+        if (particle -> position[1] <= 0.1 && particle -> velocity[1] <= 0.) {
+            particle -> velocity[1] = 0;
+            // particle -> velocity[0] *= 0.99;
+        }
+    }
 }
 
 void MPM::updateParticlePosition() {

@@ -23,7 +23,6 @@ public:
     void render();
     void step();
 
-private:    
     void particleToGrid();
     void computeParticleDensity();
     void computeGridForce();

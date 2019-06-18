@@ -4,6 +4,7 @@ bool Grid::renderV = false;
 bool Grid::renderF = false;
 
 void Grid::render() {
+    glColor3f(color(0), color(1), color(2));
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();

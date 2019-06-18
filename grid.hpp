@@ -13,6 +13,8 @@ public:
 
     Eigen::Vector2d position;
 
+    Eigen::Vector3d color;
+
     // Intermediate
     double mass;
     Eigen::Vector2d linearMomentum;
