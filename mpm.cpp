@@ -7,12 +7,12 @@ MPM::MPM(int nGrid, double timeStep) {
     this->timeStep = timeStep;
     
     // MaterialParameters material = MaterialParameters(1000, 0.2, 10, 0.025, 0.0075, 1000); // elastic
-    MaterialParameters* material = new MaterialParameters(10000, 0.2, 1, 0.005, 0.0015, 1000); // collapsing
+    MaterialParameters* material = new MaterialParameters(1000, 0.2, 1, 0.005, 0.0015, 1000); // collapsing
     materials.push_back(material);
 
-    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.1, 0.1), 0.4, 10, 1, materials[0], Eigen::Vector3d(1, 1, 1));
-    addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 10, 1, materials[0], Eigen::Vector3d(0.5, 0.5, 1));
-    addCube(Eigen::Vector2d(0.3, 0.8), Eigen::Vector2d(0.15, 0.15), 0.2, 12, 1, materials[0], Eigen::Vector3d(0.5, 1, 0.5));
+    addCube(Eigen::Vector2d(0.5, 0.2), Eigen::Vector2d(0.2, 0.2), 0, 20, 1, materials[0], Eigen::Vector3d(1, 1, 1));
+    // addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 10, 1, materials[0], Eigen::Vector3d(0.5, 0.5, 1));
+    // addCube(Eigen::Vector2d(0.3, 0.8), Eigen::Vector2d(0.15, 0.15), 0.2, 12, 1, materials[0], Eigen::Vector3d(0.5, 1, 0.5));
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {
@@ -216,6 +216,7 @@ void MPM::computeGridVelocity() {
             grid -> newLinearMomentum = grid -> linearMomentum + timeStep * grid->force;
             if (grid -> position(1) < 0.1 && grid -> newLinearMomentum(1) < 0.) {
                 grid -> newLinearMomentum(1) = 0;
+                grid -> newLinearMomentum(0) *= 0.9;
             }
         }
     }
