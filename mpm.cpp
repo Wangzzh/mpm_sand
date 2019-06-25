@@ -6,7 +6,7 @@ MPM::MPM(int nGrid, double timeStep) {
     this->time = 0;
     this->timeStep = timeStep;
     
-    MaterialParameters* material = new MaterialParameters(5000, 0.2, 1, 0.005, 0.0015, 1000); 
+    MaterialParameters* material = new MaterialParameters(300000, 0.3, 1, 0.005, 0.0015, 2200); 
     materials.push_back(material);
 
     addCube(Eigen::Vector2d(0.5, 0.25), Eigen::Vector2d(0.1, 0.3), 0, 17, 1, materials[0], Eigen::Vector3d(1, 1, 1));
@@ -306,6 +306,7 @@ void MPM::updateDeformation() {
         }
         particle->phi = particle->h0 + (particle->h1 * particle->q - particle->h3) * 
             exp(-particle->h2 * particle->q);
+        particle->phi = 30.;
         particle->alpha = sqrt(2./3.) * 2 * sin(particle->phi*3.1416/180) / (3 - sin(particle->phi*3.1416/180));
 
         particle->FE = U * S * V.transpose();

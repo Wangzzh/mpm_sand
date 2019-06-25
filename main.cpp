@@ -16,7 +16,7 @@ int pour_interval = 4;
 int pour_counter = 0;
 
 int n = 100;
-double dTime = 0.002;
+double dTime = 0.0005;
 
 void display() {
     glClearColor(0, 0, 0, 0);
