@@ -1,3 +1,4 @@
+#include <fstream>
 #include <cstdlib>
 #include <iostream>
 
@@ -10,6 +11,9 @@
 
 MPM* mpm;
 
+bool output = true;
+std::ofstream f;
+
 bool simulate = false;
 bool pour = false;
 int pour_interval = 4;
@@ -17,6 +21,7 @@ int pour_counter = 0;
 
 int n = 100;
 double dTime = 0.0005;
+std::string output_filename = "out.txt";
 
 void display() {
     glClearColor(0, 0, 0, 0);
@@ -65,10 +70,16 @@ void idle() {
     if (simulate) {
         // std::cout << "Auto step" << std::endl;
         mpm->step();
+        if (output) {
+            for (auto& p : mpm->particles) {
+                f << p->position(0) << p->position(1);
+            }
+            f << std::endl;
+        }
         if (pour) {
             pour_counter ++;
             if (pour_counter % pour_interval == 0) {
-                mpm -> addCube(Eigen::Vector2d(0.5, 0.3), Eigen::Vector2d(0.05, 0.01), 0, 1, 1, mpm->materials[0], Eigen::Vector3d(1, 1, 1));
+                mpm -> addCube(Eigen::Vector2d(0.5, 0.7), Eigen::Vector2d(0.05, 0.01), 0, 1, 1, mpm->materials[0], Eigen::Vector3d(1, 1, 1));
                 pour_counter -= pour_interval;
             }
         }
@@ -77,7 +88,12 @@ void idle() {
 }
 
 int main(int argc, char* argv[]) {
-    mpm = new MPM(n, dTime);    
+    mpm = new MPM(n, dTime);   
+
+    if (output) {
+        f.open(output_filename);
+        f << dTime << std::endl;
+    }
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);
