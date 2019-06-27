@@ -72,7 +72,8 @@ void idle() {
         mpm->step();
         if (output) {
             for (auto& p : mpm->particles) {
-                f << p->position(0) << p->position(1);
+                f << p->position(0) << " " << p->position(1) << " ";
+                f << p->color(0) << " " << p->color(1) << " " << p->color(2) << " ";
             }
             f << std::endl;
         }

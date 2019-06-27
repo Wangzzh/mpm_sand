@@ -6,7 +6,8 @@ MPM::MPM(int nGrid, double timeStep) {
     this->time = 0;
     this->timeStep = timeStep;
     
-    MaterialParameters* material = new MaterialParameters(300000, 0.3, 1, 0.005, 0.0015, 2200); 
+    // MaterialParameters* material = new MaterialParameters(300000, 0.3, 1, 0.005, 0.0015, 2200);  // sand
+    MaterialParameters* material = new MaterialParameters(10000, 0.3, 1, 0.005, 0.0015, 2200);
     materials.push_back(material);
 
     // addCube(Eigen::Vector2d(0.5, 0.25), Eigen::Vector2d(0.1, 0.3), 0, 17, 1, materials[0], Eigen::Vector3d(1, 1, 1));
@@ -176,14 +177,14 @@ void MPM::computeGridForce() {
         Eigen::Matrix2d U = svd.matrixU();
         Eigen::Matrix2d V = svd.matrixV();
         Eigen::Matrix2d RE = U * V.transpose();
-        Eigen::Matrix2d Sig = U.inverse() * particle->FE * V.transpose().inverse();
-        Eigen::Matrix2d S = V * Sig * V.transpose();
+        Eigen::Matrix2d Sig = U.transpose() * particle->FE * V;
+        // Eigen::Matrix2d S = V * Sig * V.transpose();
 
         // Eigen::Matrix2d PF = 2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
         
         // Eigen::Matrix2d PF = (0.2 * 1000 * (JP - 1)) * particle->FE.transpose().inverse();
         Eigen::Matrix2d PF = 2 * mu * (particle->FE - RE) + lambda * (JE - 1) * JE * particle->FE.transpose().inverse();
-
+        
         // std::cout << "F-R" << std::endl << particle->FE - RE << std::endl;
         // std::cout << "JE*:" << (JE-1) * JE << std::endl; 
         // std::cout << "PF:" << std::endl << PF << std::endl; 
@@ -291,22 +292,22 @@ void MPM::updateDeformation() {
             (particle->material->lambda + particle->material->mu) / particle->material->mu * 
             e.trace() * particle->alpha;
         if (dgamma < 0) {
-            particle->color = Eigen::Vector3d(0, 1, 0);
+            // particle->color = Eigen::Vector3d(0, 1, 0);
         } 
         else if (normF_ehat == 0 || e.trace()>0) {
             S = Eigen::Matrix2d::Identity();
             particle->q += sqrt((e * e).trace());
-            particle->color = Eigen::Vector3d(1, 0, 0);
+            // particle->color = Eigen::Vector3d(1, 0, 0);
         } 
         else {
             Eigen::Matrix2d H = e - dgamma * ehat / normF_ehat;
             S << exp(H(0, 0)), 0, 0, exp(H(1, 1));
             particle->q += dgamma;
-            particle->color = Eigen::Vector3d(0, 0, 1);
+            // particle->color = Eigen::Vector3d(0, 0, 1);
         }
         particle->phi = particle->h0 + (particle->h1 * particle->q - particle->h3) * 
             exp(-particle->h2 * particle->q);
-        // particle->phi = 30.;
+        particle->phi = 0.;
         particle->alpha = sqrt(2./3.) * 2 * sin(particle->phi*3.1416/180) / (3 - sin(particle->phi*3.1416/180));
 
         particle->FE = U * S * V.transpose();

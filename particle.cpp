@@ -8,12 +8,12 @@ bool Particle::renderB = false;
 void Particle::render() {
     glColor3f(color(0), color(1), color(2));
     glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+    // glPushMatrix();
+    // glLoadIdentity();
     glRectd(position(0) - 0.003, position(1) - 0.003, position(0) + 0.003, position(1) + 0.003);
     // glTranslatef(position[0], position[1], 0.);
     // glutSolidSphere(0.004, 3, 3);
-    glPopMatrix();
+    // glPopMatrix();
 
     if (Particle::renderV) {
         glColor3f(1, 1, 0);

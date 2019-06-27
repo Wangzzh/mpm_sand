@@ -6,12 +6,12 @@ bool Grid::renderF = false;
 void Grid::render() {
     glColor3f(color(0), color(1), color(2));
     glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+    // glPushMatrix();
+    // glLoadIdentity();
     glRectd(position(0) - 0.002, position(1) - 0.002, position(0) + 0.002, position(1) + 0.002);
     // glTranslatef(position[0], position[1], 0.);
     // glutSolidSphere(0.002, 3, 3);
-    glPopMatrix();
+    // glPopMatrix();
     
     if (Grid::renderV) {
         glColor3f(1, 0, 0);

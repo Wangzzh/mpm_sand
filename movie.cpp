@@ -24,7 +24,9 @@ void display() {
             std::istringstream iss(line);
             double x, y;
             while (iss >> x >> y) {
-                glColor3f(1, 1, 1);
+                double r,g,b;
+                iss >> r >> g >> b;
+                glColor3f(r, g, b);
                 glMatrixMode(GL_MODELVIEW);
                 glPushMatrix();
                 glLoadIdentity();
@@ -54,6 +56,10 @@ void idle() {
 }
 
 int main(int argc, char* argv[]) {
+    if (argc >= 2) {
+        filename = std::string(argv[1]);
+    }
+
     f.open(filename);
     std::string line;
     std::getline(f, line);
