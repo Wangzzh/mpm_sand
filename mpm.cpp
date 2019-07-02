@@ -7,9 +7,11 @@ MPM::MPM(int nGrid, double timeStep) {
     this->timeStep = timeStep;
     
     // MaterialParameters* material = new MaterialParameters(300000, 0.3, 1, 0.005, 0.0015, 2200);  // sand
-    MaterialParameters* material = new MaterialParameters(10000, 0.3, 1, 0.005, 0.0015, 2200);
+    MaterialParameters* material = new MaterialParameters(1000000, 0.3, 1, 0.005, 0.0015, 2200);
     materials.push_back(material);
 
+    addCube(Eigen::Vector2d(0.5, 0.15), Eigen::Vector2d(1, 0.1), 0, 22, 1, materials[0], Eigen::Vector3d(1, 1, 1));
+    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.05, 0.05), 0, 8, 1, materials[0], Eigen::Vector3d(1, 1, 0));
     // addCube(Eigen::Vector2d(0.5, 0.25), Eigen::Vector2d(0.1, 0.3), 0, 17, 1, materials[0], Eigen::Vector3d(1, 1, 1));
     // addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 10, 1, materials[0], Eigen::Vector3d(0.5, 0.5, 1));
     // addCube(Eigen::Vector2d(0.3, 0.8), Eigen::Vector2d(0.15, 0.15), 0.2, 12, 1, materials[0], Eigen::Vector3d(0.5, 1, 0.5));
@@ -307,7 +309,7 @@ void MPM::updateDeformation() {
         }
         particle->phi = particle->h0 + (particle->h1 * particle->q - particle->h3) * 
             exp(-particle->h2 * particle->q);
-        particle->phi = 0.;
+        particle->phi = 45.;
         particle->alpha = sqrt(2./3.) * 2 * sin(particle->phi*3.1416/180) / (3 - sin(particle->phi*3.1416/180));
 
         particle->FE = U * S * V.transpose();
