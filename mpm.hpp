@@ -34,6 +34,8 @@ public:
 
     void addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, 
         int div, int random, MaterialParameters* material, Eigen::Vector3d color);
+    void addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, 
+        double density, int random, MaterialParameters* material, Eigen::Vector3d color);
 
     double timeStep;
     double time;

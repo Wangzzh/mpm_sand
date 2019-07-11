@@ -6,15 +6,15 @@ MPM::MPM(int nGrid, double timeStep) {
     this->time = 0;
     this->timeStep = timeStep;
     
-    // MaterialParameters* material = new MaterialParameters(300000, 0.3, 1, 0.005, 0.0015, 2200);  // sand
-    MaterialParameters* material = new MaterialParameters(1000000, 0.3, 1, 0.005, 0.0015, 2200);
+    MaterialParameters* material;
+    material = new MaterialParameters(1000000, 0.3, 1, 0.005, 0.0015, 2200, 0); // sand
+    materials.push_back(material);
+    material = new MaterialParameters(1000000, 0.3, 1, 0.005, 0.0015, 2200, 1); // water
     materials.push_back(material);
 
-    addCube(Eigen::Vector2d(0.5, 0.15), Eigen::Vector2d(1, 0.1), 0, 22, 1, materials[0], Eigen::Vector3d(1, 1, 1));
-    addCube(Eigen::Vector2d(0.5, 0.5), Eigen::Vector2d(0.05, 0.05), 0, 8, 1, materials[0], Eigen::Vector3d(1, 1, 0));
-    // addCube(Eigen::Vector2d(0.5, 0.25), Eigen::Vector2d(0.1, 0.3), 0, 17, 1, materials[0], Eigen::Vector3d(1, 1, 1));
-    // addCube(Eigen::Vector2d(0.52, 0.2), Eigen::Vector2d(0.1, 0.1), -0.1, 10, 1, materials[0], Eigen::Vector3d(0.5, 0.5, 1));
-    // addCube(Eigen::Vector2d(0.3, 0.8), Eigen::Vector2d(0.15, 0.15), 0.2, 12, 1, materials[0], Eigen::Vector3d(0.5, 1, 0.5));
+    // addCube(Eigen::Vector2d(0.5, 0.12), Eigen::Vector2d(1, 0.04), 0, 1.5, 1, materials[0], Eigen::Vector3d(1, 1, 0));
+    addCube(Eigen::Vector2d(0.9, 0.5), Eigen::Vector2d(0.2, 0.8), 0, 1.5, 1, materials[1], Eigen::Vector3d(0.1, 0.1, 1));
+    addCube(Eigen::Vector2d(0.1, 0.4), Eigen::Vector2d(0.2, 0.6), 0, 1.5, 1, materials[1], Eigen::Vector3d(0.4, 0.4, 1));
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {
@@ -55,6 +55,13 @@ void MPM::addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle,
     }
 
 }
+void MPM::addCube(Eigen::Vector2d position, Eigen::Vector2d size, double angle, 
+                    double density, int random, 
+                    MaterialParameters* material, Eigen::Vector3d color) {
+    int div = (int)sqrt(size(0) * size(1) * density * nGrid * nGrid);
+    addCube(position, size, angle, div, random, material, color);
+}
+
 
 MPM::~MPM() {
     for (auto& particle : particles) {
@@ -309,7 +316,9 @@ void MPM::updateDeformation() {
         }
         particle->phi = particle->h0 + (particle->h1 * particle->q - particle->h3) * 
             exp(-particle->h2 * particle->q);
-        particle->phi = 45.;
+        if (particle->material->fluid) {
+            particle->phi = 0;
+        }
         particle->alpha = sqrt(2./3.) * 2 * sin(particle->phi*3.1416/180) / (3 - sin(particle->phi*3.1416/180));
 
         particle->FE = U * S * V.transpose();
