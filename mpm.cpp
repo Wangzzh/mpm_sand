@@ -12,9 +12,9 @@ MPM::MPM(int nGrid, double timeStep) {
     material = new MaterialParameters(1000000, 0.3, 1, 0.005, 0.0015, 2200, 1); // water
     materials.push_back(material);
 
-    // addCube(Eigen::Vector2d(0.5, 0.12), Eigen::Vector2d(1, 0.04), 0, 1.5, 1, materials[0], Eigen::Vector3d(1, 1, 0));
-    addCube(Eigen::Vector2d(0.9, 0.5), Eigen::Vector2d(0.2, 0.8), 0, 1.5, 1, materials[1], Eigen::Vector3d(0.1, 0.1, 1));
-    addCube(Eigen::Vector2d(0.1, 0.4), Eigen::Vector2d(0.2, 0.6), 0, 1.5, 1, materials[1], Eigen::Vector3d(0.4, 0.4, 1));
+    addCube(Eigen::Vector2d(0.5, 0.7), Eigen::Vector2d(0.2, 0.2), 0, 1.0, 1, materials[0], Eigen::Vector3d(1, 1, 0));
+    //addCube(Eigen::Vector2d(0.9, 0.5), Eigen::Vector2d(0.2, 0.8), 0, 1.5, 1, materials[1], Eigen::Vector3d(0.1, 0.1, 1));
+    //addCube(Eigen::Vector2d(0.1, 0.4), Eigen::Vector2d(0.2, 0.6), 0, 1.5, 1, materials[1], Eigen::Vector3d(0.4, 0.4, 1));
 
     grids = std::vector<std::vector<Grid*>>(nGrid, std::vector<Grid*>(nGrid));
     for (int i = 0; i < nGrid; i++) {

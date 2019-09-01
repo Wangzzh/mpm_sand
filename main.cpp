@@ -11,7 +11,7 @@
 
 MPM* mpm;
 
-bool output = true;
+bool output = false;
 std::ofstream f;
 
 bool simulate = false;
