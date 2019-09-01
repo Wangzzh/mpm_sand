@@ -8,6 +8,10 @@
 #include "GL/glut.h"
 
 bool play = false;
+bool recording = false;
+std::string out_prefix = "recording/frame";
+std::string out_suffix = ".bmp";
+int frame_id = 0;
 
 std::ifstream f;
 std::string filename = "out.txt";
@@ -15,6 +19,8 @@ std::string filename = "out.txt";
 double dTime;
 
 void playFrame() {
+    glColor3f(1, 1, 1);
+    glRectd(0, 0, 1, 1);
     std::string line;
     if (std::getline(f, line)) {
         std::istringstream iss(line);
@@ -23,6 +29,7 @@ void playFrame() {
             double r,g,b;
             iss >> r >> g >> b;
             glColor3f(r, g, b);
+            // glColor3f(1, 0.5, 0);
             glMatrixMode(GL_MODELVIEW);
             glPushMatrix();
             glLoadIdentity();
